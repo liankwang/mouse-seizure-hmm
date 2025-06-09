@@ -1,0 +1,26 @@
+data:
+  data_path: 'data/250509_seizure_I7_1_interpolated.parquet'
+  time_match_path: 'data/250509_seizure_I7_1_timestamp.txt'
+  start_time: '22:00'
+  end_time: '23:59'
+  pitch_roll: False
+  sampling_frequency: 500
+
+  downsampling_method: "pca_overlap" # Options: "pca", "pca_overlap", "mean", "decimate", "max"
+  target_sps: 50
+  original_sps: 500
+  n_pca_components: 10
+
+model:
+  type: "ghmm"
+  num_states: 50
+  #transition_matrix_method: "sticky"
+  num_iters: 2
+
+output:
+  output_path: "output"
+  dpi: 300
+  # save_name: "sample_output" # Keep this commented ou
+  t for standard save name
+
+
