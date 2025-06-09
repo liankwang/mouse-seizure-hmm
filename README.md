@@ -1,5 +1,6 @@
-From the parent directory, run \texttt{src/main.py --config configs/insert_name.yaml} where \texttt{insert_name.yaml} is the name of the desired YAML file.
+From the parent directory, run ```src/main.py --config configs/insert_name.yaml``` where ```insert_name.yaml``` is the name of the desired YAML file.
 
+```
 configs/                    # Create config files here to define parameters for a given run
 |── sample.yaml             # Sample config file for reference
 
@@ -32,3 +33,4 @@ src/                        # This is the main directory with all code scripts
 output/                     # All script outputs will be saved here
 
 env.yaml                    # Required packages and dependencies (incomplete) 
+```
