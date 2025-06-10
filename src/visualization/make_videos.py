@@ -11,6 +11,7 @@ def generate_videos(train_dataset,
                     hmm_states,
                     num_states,
                     time_match, 
+                    video_path,
                     save_path):
     
     # Get HMM ordered states
@@ -28,7 +29,7 @@ def generate_videos(train_dataset,
     for state in tqdm(hmm_order, desc="Generating videos for states"):
         # print(f"Generating video for state {state.item()}...")
         slices = extract_syllable_slices(state, train_posteriors)
-        clips = get_state_clips(slices, train_dataset, time_match)
+        clips = get_state_clips(slices, train_dataset, time_match, video_path)
         output_path= f"{output_dir}/state_{state.item()}.mp4"
 
         if len(clips) == 0:

@@ -7,51 +7,64 @@ from sklearn.preprocessing import StandardScaler
 from src.utils import to_t
 
 
-def downsample(data, times, method, target_sps, original_sps, n_pca_components):
+def downsample(df, method, target_sps, original_sps, n_pca_components):
     if method not in ['mean', 'max', 'pca', 'resample', 'decimate', 'pca_overlap']:
         print("Not a valid downsampling method. Using 'mean' as default.")
         method = 'mean'
     
-    n_features = data.shape[1]
+    feature_list = df.drop(columns=['seizure_status']).columns[2:].tolist()
+    n_features = len(feature_list)
+
+    data = df[feature_list].values
+    times = df['pi_time'].values
+    seizures = df['seizure_status'].values
+    
     print(f"Downsampling {original_sps}Hz data to {target_sps}Hz using {method} method...")
-    print(f"Original data has {data.shape[0]} samples and {n_features} features.")
+    print(f"Original data has {data.shape[0]} samples and {n_features} features: {feature_list}")
 
     # Trim to length divisible by downsampling factor
     downsampling_factor = original_sps // target_sps
     trim_length = (len(data) // downsampling_factor) * downsampling_factor
     data = data[:trim_length]
     times = times[:trim_length]
+    seizures = seizures[:trim_length]
     print(f"Trimmed data to {data.shape[0]} samples for downsampling by a factor of {downsampling_factor}.")
 
     # Downsample data
     if method == "decimate":
         data = data[::downsampling_factor]
         times = times[::downsampling_factor]
+        seizures = seizures[::downsampling_factor]
 
     elif method == "mean":
         data = data.reshape(-1, downsampling_factor, n_features)
         data = data.mean(axis=1)
         times = times.reshape(-1, downsampling_factor)[:, 0]
+        seizures = seizures.reshape(-1, downsampling_factor)[:, 0]
 
     elif method == "max":
         data = data.reshape(-1, downsampling_factor, n_features).max(axis=1)
         times = times.reshape(-1, downsampling_factor)[:, 0]
+        seizures = seizures.reshape(-1, downsampling_factor)[:, 0]
 
     elif method == "pca":
         data = run_blocked_pca(data, n_pca_components, downsampling_factor)
         times = times.reshape(-1, downsampling_factor)[:, 0]
+        seizures = seizures.reshape(-1, downsampling_factor)[:, 0]
 
     elif method == "resample":
         n_blocks = len(data) // downsampling_factor
         data = resample(data, n_blocks, axis=0)
         times = np.linspace(times[0].item(), times[-1].item(), n_blocks)
+        seizures = seizures.reshape(-1, downsampling_factor)[:, 0]
     
     elif method == "pca_overlap":
         data = run_blocked_pca_overlap(data, n_pca_components, downsampling_factor)
         times = times.reshape(-1, downsampling_factor)[:, 0]
+        seizures = seizures.reshape(-1, downsampling_factor)[:, 0]
     
     print(f"Downsampled data has {data.shape[0]} samples and {data.shape[1]} features.")
-    return to_t(data), torch.tensor(times, dtype=torch.float64)
+    return to_t(data), torch.tensor(times, dtype=torch.float64), torch.tensor(seizures, dtype=torch.int32)
 
 
 def run_blocked_pca(data, n_components, downsampling_factor):
@@ -64,10 +77,10 @@ def run_blocked_pca(data, n_components, downsampling_factor):
     return data_pca
 
 
-def run_blocked_pca_overlap(data, n_components, downsampling_factor, overlap=20):
-    print(f"Running blocked PCA with overlap of {overlap} samples")
-
+def run_blocked_pca_overlap(data, n_components, downsampling_factor, overlap_percentage=0.4):
+    print(f"Running blocked PCA with overlap percentage of {overlap_percentage}")
     step_size = downsampling_factor
+    overlap = int(overlap_percentage * step_size)
     window_size = step_size + overlap
     n_windows = int(len(data) / step_size)
 

@@ -124,7 +124,7 @@ def sample_clips(clips, num_clips_to_sample, min_length=None):
     return [filtered_clips[i] for i in selected_indices]
 
 def get_fps(time_match):
-    timestamps = (time_match.iloc[:, 1]*1000).round().astype(int).tolist()
+    timestamps = (time_match.iloc[:, 2]*1000).round().astype(int).tolist()
 
     # Calculate average FPS
     if len(timestamps) < 2:
@@ -133,10 +133,10 @@ def get_fps(time_match):
         durations = [timestamps[i+1]/1000 - timestamps[i]/1000 for i in range(len(timestamps)-1)]
         avg_duration = sum(durations) / len(durations)
         fps = 1.0 / avg_duration
-    print("Average FPS: ", fps)
+    print("Generating video with average FPS: ", round(fps,2))
     return fps
 
-def get_state_clips(slices, train_dataset, time_match, buffer=0.0):
+def get_state_clips(slices, train_dataset, time_match, video_path, buffer=0.0):
     clips = []
     for s in slices[0]:
         time_range = train_dataset[0]['times'][s]
@@ -154,7 +154,7 @@ def get_state_clips(slices, train_dataset, time_match, buffer=0.0):
             print(f"Warning: No frames found for time range {start_time_stamp} to {end_time_stamp}. Skipping this slice.")
             continue
 
-        frames = extract_frames(start_frame, end_frame, scale=0.25)
+        frames = extract_frames(start_frame, end_frame, path=video_path, scale=0.25)
 
         if len(frames) >= 1: # To prevent empty clips
             clips.append(frames)

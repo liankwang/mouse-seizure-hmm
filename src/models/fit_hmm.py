@@ -47,6 +47,8 @@ def fit_hmm_wrapper(train_dataset,
         precompute_ar_covariates(test_dataset, num_lags)
         LinearRegressionObservations.precompute_suff_stats(train_dataset)
         LinearRegressionObservations.precompute_suff_stats(test_dataset)
+        observations = LinearRegressionObservations(num_states, data_dim,
+                                            num_lags * data_dim + 1)
     
     # Fit the HMM with EM
     train_lls, test_lls, posteriors, test_posteriors = fit_hmm(

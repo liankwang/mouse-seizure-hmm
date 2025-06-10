@@ -2,6 +2,7 @@ from typing import Dict, Union, Any, Optional
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from .utils import palette
 
@@ -20,8 +21,8 @@ def plot_data_and_states(
     data: Dict[str, Union[torch.Tensor, np.ndarray, Any]],
     states: Union[torch.Tensor, np.ndarray],
     spc: int = 4,
-    slc: slice = slice(0, 900),
-    title: Optional[str] = None
+    slc: slice = slice(100, 10000),
+    title: Optional[str] = None,
     ) -> None:
     """
     Plots principal component data along with discrete states over time.
@@ -58,14 +59,19 @@ def plot_data_and_states(
     """
     times = data["times"][slc]
     x = data["data"][slc]
+    seizures = data['seizures'][slc]
     num_timesteps, data_dim = x.shape
+    print("Seizures: ")
+    print(seizures)
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
+    # Plot latent states in background
     ax.imshow(states[None, slc],
-              cmap="cubehelix", aspect="auto",
-              extent=(0, times[-1] - times[0], -data_dim * spc, spc))
+                cmap="cubehelix", aspect="auto",
+                extent=(0, times[-1] - times[0], -data_dim * spc, spc))
 
+    # Plot time series line plot
     ax.plot(times - times[0],
             x - spc * np.arange(data_dim),
             ls='-', lw=3, color='w')
@@ -73,8 +79,27 @@ def plot_data_and_states(
             x - spc * np.arange(data_dim),
             ls='-', lw=2, color=palette[0])
 
-    ax.set_yticks(-spc * np.arange(data_dim))
-    ax.set_yticklabels(np.arange(data_dim))
+    # Add seizure statues at the bottom
+    from matplotlib.colors import ListedColormap
+    cmap_seizure = ListedColormap(["#66c2a5", "#fc8d62", "#8da0cb"])
+
+    ax.imshow(seizures[None, :],
+            cmap = cmap_seizure,
+            aspect = "auto",
+            extent=(0, times[-1] - times[0], -data_dim * spc - spc, -data_dim * spc))
+
+    from matplotlib.patches import Patch
+    mapping = {0: 'normal', 1: 'interictal', 2: 'true seizure'}
+    legend_patches = [
+        Patch(color=cmap_seizure(i), label=mapping[i])
+        for i in sorted(mapping)
+    ]
+    ax.legend(handles=legend_patches, loc='upper right', title='seizure status')
+
+
+    # Set ticks and labels
+    ax.set_yticks(-spc * np.arange(data_dim + 1))
+    ax.set_yticklabels(list(np.arange(data_dim)) + ['seizure'])
     ax.set_ylabel("feature")
     ax.set_xlim(0, times[-1] - times[0])
     ax.set_xlabel("time [ms]")
@@ -104,15 +129,33 @@ def plot_state_usage_hist(hmm_states, num_states):
 def plot_posterior_heatmap(hmm_state_probs, train_dataset):
     T, K = hmm_state_probs.shape
     timestamps = train_dataset[0]['times'] / 1000
+    seizures = train_dataset[0]['seizures']
 
     # Set your desired x-axis limits (time step range)
-    print("CHANGE X AXIS LIMS")
     x_start = 0
     x_end = min(50000, T)
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    im = ax.imshow(hmm_state_probs.T, aspect='auto', interpolation='none', cmap='viridis',
+    im = ax.imshow(hmm_state_probs.T, 
+                   aspect='auto', interpolation='none', cmap='viridis',
                    extent=[timestamps[0], timestamps[-1], K - 1, 0])  # extent sets correct axis ranges
+    
+    # Add seizure statuses at the bottom
+    from matplotlib.colors import ListedColormap
+    cmap_seizure = ListedColormap(["#66c2a5", "#fc8d62", "#8da0cb"])
+    ax.imshow(seizures[None, :],
+              cmap=cmap_seizure,
+              aspect="auto",
+              extent=[timestamps[0], timestamps[-1], -1, 0])
+    from matplotlib.patches import Patch
+    mapping = {0: 'normal', 1: 'interictal', 2: 'true seizure'}
+    legend_patches = [
+        Patch(color=cmap_seizure(i), label=mapping[i])
+        for i in sorted(mapping)
+    ]
+    ax.legend(handles=legend_patches, loc='upper right', title='seizure status')
+    
+    # Set ticks and titles
     step = max(1, K // 10)  # Display at most 10 labels, evenly spaced
     ax.set_yticks(np.arange(0, K, step))  # Set y-ticks with a step
     ax.set_yticklabels(np.arange(0, K, step).astype(int))  # Set y-tick labels as integers

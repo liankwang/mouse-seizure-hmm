@@ -7,7 +7,7 @@ from .make_videos import generate_videos
 
 def visualize(train_dataset, train_lls, test_lls, train_posteriors, 
               save_path, 
-              time_match_path,
+              time_match_path, video_path,
               show=False, dpi=300):
     
     time_match = pd.read_table(time_match_path, sep=',')
@@ -26,14 +26,14 @@ def visualize(train_dataset, train_lls, test_lls, train_posteriors,
     
     # Save all figures
     for name, fig in figs.items():
-        Path(save_path).mkdir(exist_ok=True)
+        #Path(save_path).mkdir(parents=True, exist_ok=True)
         fig.savefig(f"{save_path}/{name}.png", dpi=dpi)
         if show:
-            plt.show(fig)
-        plt.close(fig)
+            plt.show()
+        plt.close()
 
     # Generate grid videos
     print("Generating videos...")
-    generate_videos(train_dataset, train_posteriors, hmm_states, num_states, time_match, save_path)
+    generate_videos(train_dataset, train_posteriors, hmm_states, num_states, time_match, video_path, save_path)
 
 

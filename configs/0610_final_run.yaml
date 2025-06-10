@@ -4,22 +4,23 @@ data:
   video_path: 'data/250509_seizure_I7_1.avi'
   seizure_path: 'data/250509_seizure_I7_1_0_inf_min_features_seizures.parquet'
   video_start_pi_time_sec: 412102.937448
-  start_time: '22:00'
-  end_time: '23:59'
+  start_time: '6:00'
+  end_time: '8:00'
   pitch_roll: True
-  sampling_frequency: 500
+  #sampling_frequency: 500
 
   downsampling_method: "pca_overlap" # Options: "pca", "pca_overlap", "mean", "decimate", "max"
-  target_sps: 50
+  target_sps: 10
   original_sps: 500
   n_pca_components: 10
   # TODO: Add option for overlap amount 
 
 model:
-  type: "ghmm" # Options: "ghmm", "arhmm"
+  type: "arhmm" # Options: "ghmm", "arhmm"
   num_states: 50
   #transition_matrix_method: "sticky"
-  num_iters: 2
+  num_iters: 25
+  stickiness: 0.8
 
 output:
   output_path: "output"
