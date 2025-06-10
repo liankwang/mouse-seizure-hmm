@@ -35,4 +35,4 @@ output/                     # All script outputs will be saved here
 env.yaml                    # Required packages and dependencies (incomplete) 
 ```
 
-The implementation of the Gaussian HMM and autoregressive HMM models, EM algorithm, and algorithm to fit the HMM models were all adapted from Lab 7 of Scott Linderman's Machine Learning Methods for Neural Data Analysis class at Stanford. The class materials are available at \texttt{slinderman.github.io/stats320/}.
+The implementation of the Gaussian HMM and autoregressive HMM models, EM algorithm, and algorithm to fit the HMM models were all adapted from Lab 7 of Scott Linderman's Machine Learning Methods for Neural Data Analysis class at Stanford. The class materials are available at ```slinderman.github.io/stats320/```.
